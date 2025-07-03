@@ -1,0 +1,41 @@
+    # Global ignores for Node.js projects
+    node_modules/
+    .env
+    .DS_Store
+    npm-debug.log*
+    yarn-debug.log*
+    yarn-error.log*
+    .pnpm-store/
+    *.tgz
+    .idea/
+    .vscode/
+    coverage/
+    .eslintcache
+    *.log
+
+    # Frontend (React App) specific ignores - relative to project root
+    frontend/client/build/
+    frontend/client/node_modules/
+    frontend/client/.env.local
+    frontend/client/.env.development.local
+    frontend/client/.env.test.local
+    frontend/client/.env.production.local
+    frontend/client/npm-debug.log*
+    frontend/client/yarn-debug.log*
+    frontend/client/yarn-error.log*
+    frontend/client/.pnpm-store/
+    frontend/client/*.tgz
+
+    # Backend (Node.js/Express App) specific ignores - relative to project root
+    backend/server/node_modules/
+    backend/server/.env
+    backend/server/npm-debug.log*
+    backend/server/yarn-debug.log*
+    backend/server/yarn-error.log*
+    backend/server/.pnpm-store/
+    backend/server/*.tgz
+
+    # Add any other specific files you don't want tracked
+    # For instance, if you have a top-level .env:
+    # .env
+    

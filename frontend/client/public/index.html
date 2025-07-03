@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/logo192.png" />
+    <!-- Viewport meta tag for responsive design, essential for mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+            name="description"
+            content="Jora Mall - Your online shopping destination"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <title>Jora Mall</title>
+    <!-- Include Tailwind CSS CDN for styling. This makes all Tailwind utility classes available. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to Google Fonts to import the 'Inter' font family -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apply the 'Inter' font family globally to the body for a consistent look */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar styles for better aesthetics in webkit browsers (e.g., Chrome, Safari) */
+        /* Used for the horizontal product scroller in ProductList */
+        .scrollbar-thin::-webkit-scrollbar {
+            height: 8px; /* Height of the horizontal scrollbar */
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #1a202c; /* Background of the scrollbar track (dark blue) */
+            border-radius: 10px; /* Rounded corners for the track */
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background-color: #60a5fa; /* Color of the scrollbar thumb (light blue) */
+            border-radius: 10px; /* Rounded corners for the thumb */
+            border: 2px solid #1a202c; /* Border around the thumb, matching track background */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 antialiased">
+<noscript>You need to enable JavaScript to run this app.</noscript>
+<div id="root"></div> <!-- This is the main div where your React application will be mounted by index.js -->
+</body>
+</html>

@@ -1,0 +1,34 @@
+/* You can add any global CSS styles here if needed */
+/* For now, this file can be empty as Tailwind CSS handles most styling */
+
+/* Universal image fitting */
+img {
+    max-width: 100%;
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Remove extra space below image */
+    object-fit: cover; /* Crop to fit, maintaining aspect ratio */
+}
+
+/* Optional: Scrollbar styling for better aesthetics */
+/* For Webkit browsers (Chrome, Safari) */
+.scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px; /* For horizontal scrollbars */
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: #1a202c; /* Dark background for track */
+    border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #6366f1; /* Blue-400 equivalent */
+    border-radius: 10px;
+    border: 2px solid #1a202c; /* Padding around thumb */
+}
+
+/* For Firefox */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #6366f1 #1a202c; /* thumb color track color */
+}

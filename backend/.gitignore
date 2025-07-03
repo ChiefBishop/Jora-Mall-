@@ -1,0 +1,44 @@
+    # Node.js modules and build artifacts
+    node_modules/
+    .env
+    npm-debug.log*
+    yarn-debug.log*
+    yarn-error.log*
+    .pnpm-store/
+    *.tgz
+    .DS_Store
+    .idea/
+    .vscode/
+    coverage/
+    .eslintcache
+    *.log
+
+    # Specific to the 'frontend/client' directory
+    frontend/client/build/
+    frontend/client/node_modules/
+    frontend/client/.env
+    frontend/client/.env.local
+    frontend/client/.env.development.local
+    frontend/client/.env.test.local
+    frontend/client/.env.production.local
+    frontend/client/npm-debug.log*
+    frontend/client/yarn-debug.log*
+    frontend/client/yarn-error.log*
+    frontend/client/.pnpm-store/
+    frontend/client/*.tgz
+    frontend/client/.DS_Store
+    frontend/client/.idea/
+    frontend/client/.vscode/
+
+    # Specific to the 'backend/server' directory
+    backend/server/node_modules/
+    backend/server/.env
+    backend/server/npm-debug.log*
+    backend/server/yarn-debug.log*
+    backend/server/yarn-error.log*
+    backend/server/.pnpm-store/
+    backend/server/*.tgz
+    backend/server/.DS_Store
+    backend/server/.idea/
+    backend/server/.vscode/
+    
