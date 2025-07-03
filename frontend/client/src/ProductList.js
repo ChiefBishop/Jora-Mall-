@@ -42,7 +42,7 @@ function ProductList() {
       queryParams.append('limit', 12); // Define the number of products per page
 
       // Construct the full API URL with all query parameters
-      const url = `https://jora-mall-web-backend.onrender.com/api/products?${queryParams.toString()}`;
+      const url = `https://jora-mall-backend.onrender.com/api/products?${queryParams.toString()}`;
       const response = await fetch(url); // Perform the fetch request to the backend
 
       // Check if the HTTP response was successful (status code 200-299)
@@ -69,7 +69,7 @@ function ProductList() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('https://jora-mall-web-backend.onrender.com/api/products'); // Fetch all products initially
+        const response = await fetch('https://jora-mall-backend.onrender.com/api/products'); // Fetch all products initially
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -174,7 +174,7 @@ function ProductList() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#000080] text-red-700 p-4 rounded-lg shadow-md m-4 flex-col">
         <p className="font-bold">Error:</p> <p className="ml-2">{error}</p>
-        <p className="mt-2">Please ensure your backend server is running at `https://jora-mall-web-backend.onrender.com` and your MongoDB URI is correct.</p>
+        <p className="mt-2">Please ensure your backend server is running at `https://jora-mall-backend.onrender.com` and your MongoDB URI is correct.</p>
         <Link to="/" className="mt-4 text-blue-700 hover:underline">Retry Home</Link>
       </div>
     );

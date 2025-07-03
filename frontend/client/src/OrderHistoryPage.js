@@ -31,7 +31,7 @@ function OrderHistoryPage() {
       }
 
       try {
-        const response = await fetch('https://jora-mall-web-backend.onrender.com/api/orders/my-orders', {
+        const response = await fetch('https://jora-mall-backend.onrender.com/api/orders/my-orders', {
           headers: {
             'Authorization': `Bearer ${token}`, // Authenticate request with user's token
           },

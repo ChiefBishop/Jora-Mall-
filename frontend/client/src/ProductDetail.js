@@ -27,7 +27,7 @@ function ProductDetail() {
 
       try {
         // --- IMPORTANT: When deploying, replace 'http://localhost:5000' with your deployed backend URL ---
-        const response = await fetch(`https://jora-mall-web-backend.onrender.com/api/products/${id}`);
+        const response = await fetch(`https://jora-mall-backend.onrender.com/api/products/${id}`);
         if (!response.ok) {
           // If the HTTP response is not OK (e.g., 404, 500), throw an error
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -79,7 +79,7 @@ function ProductDetail() {
     showCustomModal('Are you sure you want to delete this product? Click OK to confirm.', async () => {
       try {
         // --- IMPORTANT: When deploying, replace 'http://localhost:5000' with your deployed backend URL ---
-        const response = await fetch(`https://jora-mall-web-backend.onrender.com/api/products/${product._id}`, {
+        const response = await fetch(`https://jora-mall-backend.onrender.com/api/products/${product._id}`, {
           method: 'DELETE', // HTTP DELETE method
           headers: {
             'Authorization': `Bearer ${token}`, // Include JWT token for authentication

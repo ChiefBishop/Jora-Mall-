@@ -19,7 +19,7 @@ function Login() {
 
     try {
       // Send login request to your backend API
-      const response = await fetch('https://jora-mall-web-backend.onrender.com/api/auth/login', {
+      const response = await fetch('https://jora-mall-backend.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json', // Specify content type as JSON

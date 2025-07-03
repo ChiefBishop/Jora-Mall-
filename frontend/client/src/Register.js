@@ -37,7 +37,7 @@ function Register() {
 
     try {
       // Send a POST request to your backend's registration API endpoint
-      const response = await fetch('https://jora-mall-web-backend.onrender.com/api/auth/register', {
+      const response = await fetch('https://jora-mall-backend.onrender.com/api/auth/register', {
         method: 'POST', // HTTP method
         headers: {
           'Content-Type': 'application/json', // Specify that the request body is JSON

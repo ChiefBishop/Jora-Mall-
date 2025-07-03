@@ -62,7 +62,7 @@ function OrderConfirmationPage() {
       console.log('OrderConfirmationPage: Initiating payment verification for reference:', reference);
       try {
         // Send a POST request to your backend's Paystack verification endpoint
-        const response = await fetch('https://jora-mall-web-backend.onrender.com/api/paystack/verify', {
+        const response = await fetch('https://jora-mall-backend.onrender.com/api/paystack/verify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

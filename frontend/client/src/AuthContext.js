@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
 
   // --- IMPORTANT: This URL is for your DEPLOYED backend ---
   // If you redeploy your backend and its URL changes, you MUST update it here.
-  const backendBaseUrl = 'https://jora-mall-web-backend.onrender.com';
+  const backendBaseUrl = 'https://jora-mall-backend.onrender.com';
 
   // Custom modal function to display messages to the user.
   // Now accepts an optional `autoDismissDuration` (in ms) to make it disappear automatically.

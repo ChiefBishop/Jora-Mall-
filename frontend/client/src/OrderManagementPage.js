@@ -32,7 +32,7 @@ function OrderManagementPage() {
       }
 
       try {
-        let url = 'https://jora-mall-web-backend.onrender.com/api/orders'; // Base URL for fetching all orders
+        let url = 'https://jora-mall-backend.onrender.com/api/orders'; // Base URL for fetching all orders
         if (filterStatus !== 'all') {
           url += `?status=${filterStatus}`; // Add status filter if not 'all'
         }
@@ -83,7 +83,7 @@ function OrderManagementPage() {
     }
 
     try {
-      const response = await fetch(`https://jora-mall-web-backend.onrender.com/api/orders/${orderId}/status`, {
+      const response = await fetch(`https://jora-mall-backend.onrender.com/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

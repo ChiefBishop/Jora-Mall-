@@ -118,7 +118,7 @@ function ProductList() {
 
       // --- IMPORTANT: This URL is for your DEPLOYED backend ---
       // If you redeploy your backend and its URL changes, you MUST update it here.
-      const backendBaseUrl = 'https://jora-mall-web-backend.onrender.com';
+      const backendBaseUrl = 'https://jora-mall-backend.onrender.com';
       const url = `${backendBaseUrl}/api/products?${queryParams.toString()}`; // Construct API URL
       const response = await fetch(url); // Fetch products
 
@@ -146,7 +146,7 @@ function ProductList() {
     const fetchCategories = async () => {
       try {
         // --- IMPORTANT: This URL is for your DEPLOYED backend ---
-        const backendBaseUrl = 'https://jora-mall-web-backend.onrender.com';
+        const backendBaseUrl = 'https://jora-mall-backend.onrender.com';
         const response = await fetch(`${backendBaseUrl}/api/products`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -251,7 +251,7 @@ function ProductList() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#000080] text-red-700 p-4 rounded-lg shadow-md m-4 flex-col">
         <p className="font-bold">Error:</p> <p className="ml-2">{error}</p>
-        <p className="mt-2">Please ensure your backend server is running at `https://jora-mall-web-backend.onrender.com` or your MongoDB URI is correct.</p>
+        <p className="mt-2">Please ensure your backend server is running at `https://jora-mall-backend.onrender.com` or your MongoDB URI is correct.</p>
         <Link to="/" className="mt-4 text-blue-700 hover:underline">Retry Home</Link>
       </div>
     );

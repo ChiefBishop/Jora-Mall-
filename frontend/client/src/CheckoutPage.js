@@ -22,7 +22,7 @@ function CheckoutPage() {
 
   // --- IMPORTANT: This URL is for your DEPLOYED backend ---
   // If you redeploy your backend and its URL changes, you MUST update it here.
-  const backendBaseUrl = 'https://jora-mall-web-backend.onrender.com';
+  const backendBaseUrl = 'https://jora-mall-backend.onrender.com';
 
   // Function to format price as Naira
   const formatPrice = (price) => {

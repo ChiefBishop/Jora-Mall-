@@ -27,7 +27,7 @@ function EditProduct() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`https://jora-mall-web-backend.onrender.com/api/products/${id}`);
+        const response = await fetch(`https://jora-mall-backend.onrender.com/api/products/${id}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -80,7 +80,7 @@ function EditProduct() {
         throw new Error('Stock must be a non-negative integer.');
       }
 
-      const response = await fetch(`https://jora-mall-web-backend.onrender.com/api/products/${id}`, {
+      const response = await fetch(`https://jora-mall-backend.onrender.com/api/products/${id}`, {
         method: 'PUT', // Use PUT for updating an existing resource
         headers: {
           'Content-Type': 'application/json',
