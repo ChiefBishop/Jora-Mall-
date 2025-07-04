@@ -7,7 +7,7 @@ const dotenv = require('dotenv'); // Import dotenv to load environment variables
 // but it's already done in server.js, so this is mostly for clarity/robustness)
 dotenv.config({ path: '../config/config.env' }); // Adjust path if your config.env is elsewhere
 
-const PAYSTACK_SECRET_KEY = process.env.sk_test_1e0b91bcc039a3ad04dc15fd5abc1219643d3c6e; // Get Paystack secret key from environment variables
+const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY; // Get Paystack secret key from environment variables
 
 // Base URL for Paystack API
 const PAYSTACK_API_BASE_URL = 'https://api.paystack.co';
