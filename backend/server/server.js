@@ -42,6 +42,8 @@ mongoose.connect(MONGODB_URI)
     app.use('/api/cart', cartRoutes);
     app.use('/api/orders', orderRoutes);
     app.use('/api/paystack', paystackRoutes); // Paystack integration routes
+    app.use('/api/wallet', walletRoutes); 
+
 
     // Basic root route to confirm server is running
     app.get('/', (req, res) => {
