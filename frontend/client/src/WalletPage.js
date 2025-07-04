@@ -1,27 +1,19 @@
+// client/src/WalletPage.js
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthContext'; // Import useAuth to get user, token, cart, showCustomModal, clearCart, fetchWalletBalance
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext'; // Import useAuth to access user, token, fetchWalletBalance, showCustomModal
 
-function CheckoutPage() {
-  const { user, token, cart, clearCart, showCustomModal, fetchWalletBalance } = useAuth(); // Get necessary context values
-  const navigate = useNavigate(); // Hook for navigation
+function WalletPage() {
+  const { user, token, fetchWalletBalance, showCustomModal } = useAuth();
+  const navigate = useNavigate();
 
-  // State for delivery address form
-  const [deliveryInfo, setDeliveryInfo] = useState({
-    fullName: user?.username || '', // Pre-fill with username if available (using optional chaining)
-    email: user?.email || '',       // Pre-fill with email if available
-    address: '',
-    city: '',
-    postalCode: '',
-    country: '',
-  });
-
-  const [paymentMethod, setPaymentMethod] = useState('paystack'); // Default payment method
-  const [loading, setLoading] = useState(false); // State for loading indicator during checkout process
-  const [error, setError] = useState(null);     // State for displaying error messages
+  const [amountToAdd, setAmountToAdd] = useState(''); // State for amount to add to wallet
+  const [loading, setLoading] = useState(false);     // State for loading indicator
+  const [error, setError] = useState(null);         // State for error messages
+  const [showBalance, setShowBalance] = useState(true); // NEW: State to toggle balance visibility
 
   // --- IMPORTANT: This URL is for your DEPLOYED backend ---
-  // If you redeploy your backend and its URL changes, you MUST update it here.
   const backendBaseUrl = 'https://jora-mall-backend.onrender.com';
 
   // Function to format price as Naira
@@ -29,198 +21,113 @@ function CheckoutPage() {
     return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(price);
   };
 
-  // Effect to handle initial checks: cart empty or user not logged in
+  // Effect to fetch wallet balance when component mounts or token changes
   useEffect(() => {
-    // Stringify cart.items to ensure effect only re-runs if cart content changes, not just reference
-    if (!cart || !cart.items || cart.items.length === 0) {
-      showCustomModal('Your cart is empty. Please add items before checking out.', () => {
-        navigate('/cart'); // Redirect to cart page
+    // If not logged in, redirect to login
+    if (!token) {
+      showCustomModal('You must be logged in to access your wallet.', () => {
+        navigate('/login');
       });
-      return; // Exit early
+      return;
     }
-    // Also handle case where user somehow lands here without being logged in (though ProtectedRoute should catch this)
-    if (!user || !token) {
-      showCustomModal('You must be logged in to proceed to checkout.', () => {
-        navigate('/login'); // Redirect to login page
-      });
-      return; // Exit early
-    }
-    // Fetch wallet balance when component mounts or user/token changes
+    // Fetch balance when component mounts or token changes
     fetchWalletBalance(token);
-  }, [JSON.stringify(cart.items), user, token, navigate, showCustomModal, fetchWalletBalance]); // Dependencies include stringified cart items for content change detection
+  }, [token, navigate, fetchWalletBalance, showCustomModal]);
 
 
-  // Handle input changes for delivery information form
-  const handleDeliveryInfoChange = (e) => {
-    const { name, value } = e.target;
-    setDeliveryInfo(prevInfo => ({
-      ...prevInfo,
-      [name]: value,
-    }));
-  };
+  // Handle adding funds via Paystack
+  const handleAddFunds = async (e) => {
+    e.preventDefault();
+    setError(null);
 
-  // Function to initiate Paystack payment by calling your backend
-  const initiatePaystackPayment = async (orderId, amount, customerEmail) => {
-    setLoading(true); // Set loading state while payment initiation is in progress
-    setError(null);   // Clear any previous errors
+    const amount = parseFloat(amountToAdd);
+    if (isNaN(amount) || amount <= 0) {
+      showCustomModal('Please enter a valid positive amount.');
+      return;
+    }
+
+    if (!user || !token) {
+      showCustomModal('You must be logged in to add funds.', () => navigate('/login'));
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      // Step 1: Call your backend API to initialize the Paystack transaction
-      const response = await fetch(`${backendBaseUrl}/api/paystack/initialize`, { // Using deployed backend URL
+      // Step 1: Initialize Paystack transaction on backend
+      const response = await fetch(`${backendBaseUrl}/api/wallet/initialize-add-funds`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Authenticate the request with JWT token
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          amount: amount * 100, // Paystack expects amount in kobo (Nigerian cents), so multiply by 100
-          email: customerEmail,
-          orderId: orderId, // Pass the internal order ID created on your backend
-        }),
+        body: JSON.stringify({ amount }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to initialize Paystack transaction.');
+        throw new Error(errorData.message || 'Failed to initialize fund addition.');
       }
 
-      const { authorizationUrl } = await response.json(); // Get the authorization URL from Paystack
-      console.log('Paystack authorization URL:', authorizationUrl);
+      const { authorizationUrl } = await response.json();
+      console.log('Paystack authorization URL for wallet top-up:', authorizationUrl);
 
-      // Step 2: Redirect the user's browser to the Paystack payment page
+      // Step 2: Redirect to Paystack
       window.location.href = authorizationUrl;
 
-      // Note: No `setLoading(false)` here, as the page will immediately redirect.
-      // The rest of the success flow (e.g., clearing cart, showing confirmation)
-      // happens on the `OrderConfirmationPage` after Paystack redirects back.
-
+      // Note: Loading state will be reset on redirect, or handled by the next page.
     } catch (err) {
-      console.error('Error initiating Paystack payment:', err);
-      setError(err.message); // Set error message
-      showCustomModal(`Paystack payment initiation failed: ${err.message}`); // Show error to user
-      setLoading(false); // Reset loading state if an error prevents redirection
+      console.error('Error adding funds to wallet:', err);
+      setError(err.message);
+      showCustomModal(`Failed to add funds: ${err.message}`);
+      setLoading(false);
     }
   };
 
-
-  // Main handler for the checkout submission
-  const handleCheckout = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-    setLoading(true);   // Set loading state
-    setError(null);     // Clear previous errors
-
-    // --- Frontend Validation ---
-    if (!deliveryInfo.fullName || !deliveryInfo.address || !deliveryInfo.city || !deliveryInfo.postalCode || !deliveryInfo.country) {
-      showCustomModal('Please fill in all delivery information fields.');
-      setLoading(false);
-      return;
-    }
-
-    if (!user || !token) {
-      showCustomModal('You must be logged in to complete checkout. Please log in or register.', () => {
-        navigate('/login');
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (!cart || !cart.items || cart.items.length === 0) {
-      showCustomModal('Your cart is empty. Please add items before checking out.', () => {
-        navigate('/cart');
-      });
-      setLoading(false);
-      return;
-    }
-
-    // NEW: Wallet payment specific validation
-    if (paymentMethod === 'wallet' && (!user.walletBalance || user.walletBalance < cart.totalAmount)) {
-      showCustomModal('Insufficient wallet balance. Please add funds or choose another payment method.');
-      setLoading(false);
-      return;
-    }
-    // --- End Frontend Validation ---
-
-    try {
-      // Step 1: Create the order on your backend API
-      const orderResponse = await fetch(`${backendBaseUrl}/api/orders`, { // Using deployed backend URL
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Authenticate the request
-        },
-        body: JSON.stringify({
-          items: cart.items.map(item => ({
-            // Ensure product ID is used, whether from `product._id` or `product` directly (for local cart items)
-            product: item.product._id || item.product,
-            quantity: item.quantity,
-            price: item.price,
-            name: item.name,
-            imageUrl: item.imageUrl
-          })),
-          totalAmount: cart.totalAmount,
-          shippingAddress: deliveryInfo,
-          paymentMethod: paymentMethod, // Pass the selected payment method to the backend
-        }),
-      });
-
-      if (!orderResponse.ok) {
-        const errorData = await orderResponse.json();
-        throw new Error(errorData.message || 'Failed to create order on backend.');
-      }
-
-      const orderData = await orderResponse.json();
-      console.log('Order created successfully on backend:', orderData);
-
-      // Step 2: Handle payment based on selected method
-      if (paymentMethod === 'paystack') {
-        await initiatePaystackPayment(orderData.order._id, orderData.order.totalAmount, user.email);
-      } else if (paymentMethod === 'wallet') {
-        // If payment was handled by wallet on backend, navigate to confirmation page directly
-        // Backend already deducted funds and updated order status
-        showCustomModal('Payment successful via wallet!', () => {
-          clearCart(); // Clear cart after successful wallet payment
-          fetchWalletBalance(token); // Refresh wallet balance after deduction
-          navigate('/order-confirmation', { state: { orderId: orderData.order._id } }); // Pass order ID for confirmation page
-        }, 3000); // Auto-dismiss after 3 seconds
-      }
-
-      // IMPORTANT: The page will redirect to Paystack if paymentMethod is 'paystack'.
-      // If paymentMethod is 'wallet', the modal and navigation above handle it.
-      // Do NOT clear cart or navigate here for Paystack path. That's handled by Paystack verification
-      // on the OrderConfirmationPage once the payment is confirmed.
-
-    } catch (err) {
-      console.error('Error during checkout process:', err);
-      setError(err.message); // Set form error
-      showCustomModal(`Checkout failed: ${err.message}`); // Show modal error
-      setLoading(false); // Reset loading state if the process fails before redirection
-    }
-  };
-
-  // Render a loading/redirect message if cart is empty, user is not logged in, or during initial checks.
-  // This prevents the flickering by providing a stable UI during transient states.
-  if (!cart || !cart.items || cart.items.length === 0 || !user || !token) {
+  // If user or token is not available yet, show loading or redirect message
+  if (!user || !token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#000080] p-4 text-white">
         <div className="bg-white text-gray-800 p-8 rounded-xl shadow-lg text-center">
-          <p className="text-2xl font-semibold mb-4">Redirecting or checking cart status...</p>
+          <p className="text-2xl font-semibold mb-4">Loading wallet or redirecting...</p>
           <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500 mx-auto mt-4"></div>
         </div>
       </div>
     );
   }
 
-  // Main render for the Checkout Page
   return (
-    <div className="min-h-screen bg-[#000080] p-4 sm:p-8 text-white">
+    <div className="min-h-screen bg-[#000080] p-4 sm:p-8 text-white font-inter">
       <header className="text-center py-8 bg-gradient-to-r from-blue-800 to-indigo-900 rounded-b-xl shadow-lg mb-8">
-        <h1 className="text-4xl font-bold text-white tracking-tight">Checkout</h1>
-        <p className="text-xl text-blue-200 mt-2">Complete your purchase</p>
+        <h1 className="text-4xl font-bold text-white tracking-tight">My Wallet</h1>
+        <p className="text-xl text-blue-200 mt-2">Manage your Jora Mall funds.</p>
       </header>
 
       <main className="container mx-auto px-4">
         <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 text-gray-800">
-          <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">Delivery Information & Payment</h2>
+          <div className="flex justify-center items-center mb-6">
+            <h2 className="text-2xl font-bold text-center text-blue-700 mr-4">
+              Current Balance: {showBalance ? formatPrice(user.walletBalance || 0) : '********'}
+            </h2>
+            <button
+              onClick={() => setShowBalance(!showBalance)}
+              className="p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200"
+              title={showBalance ? 'Hide Balance' : 'Show Balance'}
+            >
+              {showBalance ? (
+                // Eye-slash icon for hide
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.293 3.293m7.532 7.532l3.293-3.293M3 3l3.594 3.594m-2.25 2.25L9.293 12l-2.293 2.293m7.532 7.532L21 3" />
+                </svg>
+              ) : (
+                // Eye icon for show
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              )}
+            </button>
+          </div>
 
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md relative mb-4" role="alert">
@@ -229,166 +136,43 @@ function CheckoutPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Order Summary Section */}
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">Order Summary</h3>
-              <div className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50">
-                {cart.items.map(item => (
-                  <div key={item.product._id || item.product} className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700">{item.name} (x{item.quantity})</span>
-                    <span className="font-medium text-gray-900">{formatPrice(item.price * item.quantity)}</span>
-                  </div>
-                ))}
-                <div className="border-t border-gray-200 pt-3 mt-3 flex justify-between items-center font-bold text-lg">
-                  <span>Total:</span>
-                  <span>{formatPrice(cart.totalAmount)}</span>
-                </div>
+          <div className="max-w-md mx-auto">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">Add Funds to Wallet</h3>
+            <form onSubmit={handleAddFunds} className="space-y-4">
+              <div>
+                <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Amount (NGN)</label>
+                <input
+                  type="number"
+                  id="amount"
+                  name="amount"
+                  value={amountToAdd}
+                  onChange={(e) => setAmountToAdd(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., 5000"
+                  min="1"
+                  step="any" // Allows decimal amounts if needed, though currency usually two decimal places
+                  required
+                />
               </div>
-            </div>
+              <button
+                type="submit"
+                className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-300 shadow-md flex items-center justify-center"
+                disabled={loading}
+              >
+                {loading ? (
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : 'Add Funds via Paystack'}
+              </button>
+            </form>
+          </div>
 
-            {/* Delivery Information Form */}
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">Delivery Details</h3>
-              <form onSubmit={handleCheckout} className="space-y-4">
-                <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Full Name</label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
-                    value={deliveryInfo.fullName}
-                    onChange={handleDeliveryInfoChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={deliveryInfo.email}
-                    onChange={handleDeliveryInfoChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                    readOnly={!!user && !!user.email} // Make email read-only if user is logged in and has an email
-                  />
-                </div>
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={deliveryInfo.address}
-                    onChange={handleDeliveryInfoChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={deliveryInfo.city}
-                      onChange={handleDeliveryInfoChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">Postal Code</label>
-                    <input
-                      type="text"
-                      id="postalCode"
-                      name="postalCode"
-                      value={deliveryInfo.postalCode}
-                      onChange={handleDeliveryInfoChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="country" className="block text-sm font-medium text-gray-700">Country</label>
-                    <input
-                      type="text"
-                      id="country"
-                      name="country"
-                      value={deliveryInfo.country}
-                      onChange={handleDeliveryInfoChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* NEW: Payment Method Selection */}
-                <div className="mt-6">
-                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Select Payment Method</h3>
-                  <div className="space-y-3">
-                    {/* Paystack Option */}
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="paystack"
-                        name="paymentMethod"
-                        value="paystack"
-                        checked={paymentMethod === 'paystack'}
-                        onChange={() => setPaymentMethod('paystack')}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                      />
-                      <label htmlFor="paystack" className="ml-3 block text-base font-medium text-gray-700">
-                        Pay with Card / Bank Transfer (via Paystack)
-                      </label>
-                    </div>
-
-                    {/* Wallet Option */}
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="wallet"
-                        name="paymentMethod"
-                        value="wallet"
-                        checked={paymentMethod === 'wallet'}
-                        onChange={() => setPaymentMethod('wallet')}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                        // Disable wallet option if user is not logged in or has insufficient balance
-                        disabled={!user || (user.walletBalance || 0) < cart.totalAmount}
-                      />
-                      <label htmlFor="wallet" className="ml-3 block text-base font-medium text-gray-700">
-                        Pay with Wallet (Balance: {formatPrice(user?.walletBalance || 0)})
-                        {(!user || (user.walletBalance || 0) < cart.totalAmount) && (
-                          <span className="text-sm text-red-500 ml-2">
-                            (Insufficient funds or not logged in)
-                          </span>
-                        )}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-
-                {/* Payment button */}
-                <button
-                  type="submit"
-                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300 shadow-md flex items-center justify-center"
-                  // Disable button if loading, cart empty, or user not logged in
-                  disabled={loading || !cart.items.length || !user}
-                >
-                  {loading ? (
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : `Complete Order with ${paymentMethod === 'wallet' ? 'Wallet' : 'Paystack'}`}
-                </button>
-              </form>
-            </div>
+          <div className="text-center mt-8">
+            <Link to="/" className="text-blue-600 hover:underline">
+              &larr; Back to Home
+            </Link>
           </div>
         </div>
       </main>
@@ -400,4 +184,4 @@ function CheckoutPage() {
   );
 }
 
-export default CheckoutPage;
+export default WalletPage;

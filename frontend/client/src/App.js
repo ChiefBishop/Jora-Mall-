@@ -15,7 +15,7 @@ import CheckoutPage from './CheckoutPage';
 import OrderConfirmationPage from './OrderConfirmationPage';
 import OrderHistoryPage from './OrderHistoryPage';
 import OrderManagementPage from './OrderManagementPage';
-import WalletPage from './WalletPage'; // NEW: Import WalletPage
+import WalletPage from './WalletPage'; // Import WalletPage
 
 
 // Add a style block for the marquee animation directly in the component.
@@ -306,12 +306,18 @@ function ProductList() {
               >
                 My Orders
               </Link>
-              {/* NEW: Link to Wallet Page */}
+              {/* NEW: Link to Wallet Page with visible balance */}
               <Link
                 to="/wallet"
-                className="inline-block bg-teal-500 text-white py-2 px-4 sm:px-6 rounded-lg font-medium hover:bg-teal-600 transition-colors duration-300 shadow-md"
+                className="inline-block bg-teal-500 text-white py-2 px-4 sm:px-6 rounded-lg font-medium hover:bg-teal-600 transition-colors duration-300 shadow-md flex items-center space-x-2"
               >
-                My Wallet
+                <span>My Wallet</span>
+                {/* Display wallet balance if available */}
+                {user.walletBalance !== undefined && (
+                  <span className="bg-teal-700 px-2 py-1 rounded-full text-xs font-bold">
+                    {formatPrice(user.walletBalance)}
+                  </span>
+                )}
               </Link>
               {/* Logout button */}
               <button
