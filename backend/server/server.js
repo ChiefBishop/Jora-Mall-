@@ -45,7 +45,7 @@ mongoose.connect(MONGODB_URI)
     const cartRoutes = require('./routes/cart');
     const orderRoutes = require('./routes/orders');
     const paystackRoutes = require('./routes/paystack');
-    const walletRoutes = require('./routes/wallet'); // <--- DECLARATION OF walletRoutes HERE
+    const walletRoutes = require('./routes/wallet');
 
     // --- Mount Routers (Associate routes with specific paths) ---
     app.use('/api/auth', authRoutes);
@@ -53,7 +53,7 @@ mongoose.connect(MONGODB_URI)
     app.use('/api/cart', cartRoutes);
     app.use('/api/orders', orderRoutes);
     app.use('/api/paystack', paystackRoutes);
-    app.use('/api/wallet', walletRoutes); // <--- USAGE OF walletRoutes HERE
+    app.use('/api/wallet', walletRoutes);
 
     // Basic root route for development to confirm backend is running
     app.get('/', (req, res) => {
@@ -62,7 +62,7 @@ mongoose.connect(MONGODB_URI)
 
     // Error handling middleware (should be last middleware loaded, before app.listen)
     // Ensure this file exists at server/middleware/error.js
-    const errorHandler = require('./middleware/error');
+    const errorHandler = require('./middleware/error'); // <--- CONFIRM THIS PATH AND NAME
     app.use(errorHandler);
 
 
